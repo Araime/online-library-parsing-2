@@ -161,12 +161,12 @@ if __name__ == '__main__':
         book_id = urlsplit(url).path.strip('/').strip('b')
         try:
             book_link = get_book_link(book_id)
-            book_page_info, img_link, image_path, book_path = parse_book_page(book_id, books_folder, images_folder,
-                                                                              skip_img, skip_txt)
+            book_page_info, img_link, image_path, txt_path = parse_book_page(book_id, books_folder, images_folder,
+                                                                             skip_img, skip_txt)
             if not skip_txt:
-                download_txt(book_link, image_path)
+                download_txt(book_link, txt_path)
             if not skip_img:
-                download_image(img_link, book_path)
+                download_image(img_link, image_path)
             books_description.append(book_page_info)
         except requests.HTTPError:
             logging.error(f'Книга по ссылке {url} не доступна для скачивания')
