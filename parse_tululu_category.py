@@ -47,7 +47,7 @@ def check_for_redirect(response):
         raise requests.HTTPError(response.history)
 
 
-def parse_book_page(book_id, book_folder, image_folder):
+def parse_book_page(book_id, book_folder, image_folder, skip_image, skip_text):
     book_page_link = f'https://tululu.org/b{book_id}'
     response = requests.get(book_page_link)
     response.raise_for_status()
@@ -59,11 +59,11 @@ def parse_book_page(book_id, book_folder, image_folder):
     author = title[1].strip()
     img = soup.select_one('.bookimage a img')['src']
     filename = img.split('/')[-1]
-    img_src = os.path.join(image_folder, filename)
-    if skip_img:
-        img_src = 'Not downloaded'
+    img_path = os.path.join(image_folder, filename)
+    if skip_image:
+        img_path = 'Not downloaded'
     book_path = os.path.join(book_folder, f'{book_name}.txt')
-    if skip_txt:
+    if skip_text:
         book_path = 'Not downloaded'
     image_link = urljoin('https://tululu.org', img)
     comments_tags = soup.select('.texts')
@@ -73,7 +73,7 @@ def parse_book_page(book_id, book_folder, image_folder):
     book_page_information = {
         'book_name': book_name,
         'author': author,
-        'img_path': img_src,
+        'img_path': img_path,
         'book_path': book_path,
         'comments': comments,
         'genre': genres
@@ -163,7 +163,7 @@ if __name__ == '__main__':
         book_id = urlsplit(url).path.strip('/').strip('b')
         try:
             book_link = get_book_link(book_id)
-            book_page_info, img_link = parse_book_page(book_id, books_folder, images_folder)
+            book_page_info, img_link = parse_book_page(book_id, books_folder, images_folder, skip_img, skip_txt)
             if not skip_txt:
                 download_txt(book_link, book_page_info)
             if not skip_img:
