@@ -2,11 +2,11 @@ import argparse
 import json
 import logging
 import os
-from pathvalidate import sanitize_filename
 import sys
 from urllib.parse import urljoin, urlsplit
 
 from bs4 import BeautifulSoup
+from pathvalidate import sanitize_filename
 import requests
 from tqdm import tqdm
 
@@ -133,9 +133,9 @@ if __name__ == '__main__':
     os.makedirs(books_folder, exist_ok=True)
     os.makedirs(images_folder, exist_ok=True)
     os.makedirs(json_folder, exist_ok=True)
+
     skip_img = args.skip_img
     skip_txt = args.skip_txt
-
     start_page = args.start_page
     if args.end_page:
         end_page = args.end_page
@@ -157,6 +157,7 @@ if __name__ == '__main__':
         logging.error('Никаких ссылок на книги не найдено, скачивание отменено')
         sys.exit('Никаких ссылок на книги не найдено, скачивание отменено')
 
+    unavailability_flag = False
     books_description = []
     for url in tqdm(all_books_urls, ncols=80):
         book_id = urlsplit(url).path.strip('/').strip('b')
@@ -169,7 +170,11 @@ if __name__ == '__main__':
                 download_image(img_link, book_page_info)
             books_description.append(book_page_info)
         except requests.HTTPError:
-            logging.error(f'{url} скачивание недоступно')
+            logging.error(f'Книга по ссылке {url} не доступна для скачивания')
+            unavailability_flag = True
             continue
+
+    if unavailability_flag:
+        print(f'Не все книги скачались, подробности в sample.log')
 
     create_books_description(books_description, json_folder)

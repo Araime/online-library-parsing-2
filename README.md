@@ -129,6 +129,8 @@ C:\Users\varfolomeyfever\Desktop\For json
 скачивание следующей книги. Создаётся файл `sample.log`, куда записываются сообщения 
 о невозможности скачать книгу с указанием ссылки на страницу книги.
 
+<a href="https://ibb.co/sWDdyPY"><img src="https://i.ibb.co/jJxPg5X/image.png" alt="image" border="0"></a>
+
 ### Цель проекта
 
 Код написан в образовательных целях на онлайн-курсе для веб-разработчиков [dvmn.org](https://dvmn.org).
