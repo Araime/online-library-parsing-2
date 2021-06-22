@@ -10,29 +10,30 @@ import requests
 from tqdm import tqdm
 
 
-def get_books_urls(genre_url, page):
+def get_books_urls(genre_url, page_number):
     first_page = 'https://tululu.org/l55/1'
     response = requests.get(first_page)
     soup = BeautifulSoup(response.text, 'lxml')
-    end_page_number = int(soup.find_all(class_='npage')[-1].text)
+    end_page_number = int(soup.select('.npage')[-1].text)
 
     if page > end_page_number:
-        raise ValueError(f'Страницы под номером {page} не существует')
-    url = f'{genre_url}{page}'
-    response = requests.get(url)
+        raise ValueError(f'Страницы под номером {page_number} не существует')
+
+    page_url = f'{genre_url}{page_number}'
+    response = requests.get(page_url)
     response.raise_for_status()
 
     soup = BeautifulSoup(response.text, 'lxml')
-    books = soup.find_all('table', class_='d_book')
+    books = soup.select('.d_book')
     books_ids = [book.a['href'] for book in books]
-    books_links = [urljoin('https://tululu.org', book_id) for book_id in books_ids]
+    books_links = [urljoin('https://tululu.org', id_number) for id_number in books_ids]
     return books_links
 
 
 def get_book_link(book_id):
-    url = f'https://tululu.org/txt.php'
+    base_url = f'https://tululu.org/txt.php'
     payload = {'id': book_id}
-    response = requests.get(url, params=payload)
+    response = requests.get(base_url, params=payload)
     check_for_redirect(response)
     return response.url
 
@@ -42,24 +43,24 @@ def check_for_redirect(response):
         raise requests.HTTPError(response.history)
 
 
-def parse_book_page(book_id, books_folder, images_folder):
+def parse_book_page(book_id, book_folder, image_folder):
     book_page_link = f'https://tululu.org/b{book_id}'
     response = requests.get(book_page_link)
     response.raise_for_status()
 
     soup = BeautifulSoup(response.text, 'lxml')
-    title_tag = soup.find('h1')
+    title_tag = soup.select_one('h1')
     title = title_tag.text.split('::')
     book_name = sanitize_filename(title[0].strip())
     author = title[1].strip()
-    img = soup.find(class_='bookimage').find('img')['src']
+    img = soup.select_one('.bookimage a img')['src']
     filename = img.split('/')[-1]
-    img_src = os.path.join(images_folder, filename)
-    book_path = os.path.join(books_folder, f'{book_name}.txt')
+    img_src = os.path.join(image_folder, filename)
+    book_path = os.path.join(book_folder, f'{book_name}.txt')
     image_link = urljoin('https://tululu.org', img)
-    comments_tags = soup.find_all('div', class_='texts')
+    comments_tags = soup.select('.texts')
     comments = [comment.span.text for comment in comments_tags]
-    genre_tag = soup.find('span', class_='d_book').find_all('a')
+    genre_tag = soup.select('span.d_book a')
     genres = [genre.text for genre in genre_tag]
     book_page_information = {
         'book_name': book_name,
@@ -70,12 +71,6 @@ def parse_book_page(book_id, books_folder, images_folder):
         'genre': genres
     }
     return book_page_information, image_link
-
-
-def create_books_description(description, folder):
-    json_path = os.path.join(folder, 'books_description.json')
-    with open(json_path, 'w', encoding='utf-8') as file:
-        json.dump(description, file, ensure_ascii=False)
 
 
 def download_txt(link, page_info):
@@ -94,13 +89,19 @@ def download_image(link, page_info):
         file.write(response.content)
 
 
+def create_books_description(description, folder):
+    json_path = os.path.join(folder, 'books_description.json')
+    with open(json_path, 'w', encoding='utf-8') as file:
+        json.dump(description, file, ensure_ascii=False)
+
+
 def get_args():
     parser = argparse.ArgumentParser(description='Программа для скачивания всех книг и обложек к нем,'
                                                  'со всех указанных страниц')
     parser.add_argument('-s', '--start_page', help='С какой страницы скачивать книги', type=int, default=1)
     parser.add_argument('-e', '--end_page', help='По какую страницу скачивать книги', type=int, default=4)
-    args = parser.parse_args()
-    return args
+    arguments = parser.parse_args()
+    return arguments
 
 
 if __name__ == '__main__':
@@ -110,9 +111,9 @@ if __name__ == '__main__':
                         format='%(filename)s - %(levelname)s - %(message)s',
                         level=logging.ERROR)
     all_books_urls = []
-    books_folder = 'books'
-    images_folder = 'images'
-    json_folder = 'json'
+    books_folder = 'books/'
+    images_folder = 'images/'
+    json_folder = 'json/'
     os.makedirs(books_folder, exist_ok=True)
     os.makedirs(images_folder, exist_ok=True)
     os.makedirs(json_folder, exist_ok=True)
@@ -143,4 +144,5 @@ if __name__ == '__main__':
             print(f'Книга по ссылке {url} не доступна для скачивания')
             logging.error(f'Книга по ссылке {url} не доступна для скачивания')
             continue
+
     create_books_description(books_description, json_folder)
