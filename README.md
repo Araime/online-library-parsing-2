@@ -69,7 +69,11 @@ pip install -r requirements.txt
 
 Пример запуска с указанием диапазона страниц(книги скачаются с 1 по 4 страницу):
 ```sh
-python main.py -s 1 -e 5
+python parse_tululu_category.py main.py -s 1 -e 5
+```
+Скачиваем только седьмую страницу:
+```sh
+python parse_tululu_category.py main.py -s 7 -e 8
 ```
 Прогресс бар отображает скачивание книг:  
 
