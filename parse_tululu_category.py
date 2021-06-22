@@ -102,7 +102,7 @@ def get_args():
     parser = argparse.ArgumentParser(description='Программа для скачивания всех книг и обложек к нем,'
                                                  'со всех указанных страниц')
     parser.add_argument('-s', '--start_page', help='С какой страницы скачивать книги', type=int, default=1)
-    parser.add_argument('-e', '--end_page', help='По какую страницу скачивать книги', type=int)
+    parser.add_argument('-e', '--end_page', help='До какой страницы скачивать книги', type=int)
     arguments = parser.parse_args()
     return arguments
 
@@ -127,9 +127,6 @@ if __name__ == '__main__':
         end_page = args.end_page
     else:
         end_page = end_page_number
-
-    print(start_page)
-    print(end_page)
 
     for page in range(start_page, end_page):
         try:
