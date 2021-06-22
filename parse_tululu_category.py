@@ -10,12 +10,15 @@ import requests
 from tqdm import tqdm
 
 
-def get_books_urls(genre_url, page_number):
-    first_page = 'https://tululu.org/l55/1'
-    response = requests.get(first_page)
+def get_end_page_number(genre_url):
+    response = requests.get(genre_url)
+    response.raise_for_status()
     soup = BeautifulSoup(response.text, 'lxml')
     end_page_number = int(soup.select('.npage')[-1].text)
+    return end_page_number
 
+
+def get_books_urls(genre_url, page_number, end_page_number):
     if page > end_page_number:
         raise ValueError(f'Страницы под номером {page_number} не существует')
 
@@ -99,17 +102,18 @@ def get_args():
     parser = argparse.ArgumentParser(description='Программа для скачивания всех книг и обложек к нем,'
                                                  'со всех указанных страниц')
     parser.add_argument('-s', '--start_page', help='С какой страницы скачивать книги', type=int, default=1)
-    parser.add_argument('-e', '--end_page', help='По какую страницу скачивать книги', type=int, default=4)
+    parser.add_argument('-e', '--end_page', help='По какую страницу скачивать книги', type=int)
     arguments = parser.parse_args()
     return arguments
 
 
 if __name__ == '__main__':
     args = get_args()
-    genre_url = 'https://tululu.org/l55/'
     logging.basicConfig(filename='sample.log', filemode='w',
                         format='%(filename)s - %(levelname)s - %(message)s',
                         level=logging.ERROR)
+    genre_url = 'https://tululu.org/l55/'
+    end_page_number = get_end_page_number(genre_url)
     all_books_urls = []
     books_folder = 'books/'
     images_folder = 'images/'
@@ -118,9 +122,18 @@ if __name__ == '__main__':
     os.makedirs(images_folder, exist_ok=True)
     os.makedirs(json_folder, exist_ok=True)
 
-    for page in range(args.start_page, args.end_page + 1):
+    start_page = args.start_page
+    if args.end_page:
+        end_page = args.end_page
+    else:
+        end_page = end_page_number
+
+    print(start_page)
+    print(end_page)
+
+    for page in range(start_page, end_page):
         try:
-            books_urls = get_books_urls(genre_url, page)
+            books_urls = get_books_urls(genre_url, page, end_page_number)
             all_books_urls.extend(books_urls)
         except ValueError:
             print(f'Страницы с номером {page} не существует')
