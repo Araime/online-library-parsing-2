@@ -3,6 +3,7 @@ import json
 import logging
 import os
 from pathvalidate import sanitize_filename
+import sys
 from urllib.parse import urljoin, urlsplit
 
 from bs4 import BeautifulSoup
@@ -10,16 +11,16 @@ import requests
 from tqdm import tqdm
 
 
-def get_end_page_number(genre_url):
+def get_last_page_number(genre_url):
     response = requests.get(genre_url)
     response.raise_for_status()
     soup = BeautifulSoup(response.text, 'lxml')
-    end_page_number = int(soup.select('.npage')[-1].text)
-    return end_page_number
+    last_page_number = int(soup.select('.npage')[-1].text)
+    return last_page_number
 
 
-def get_books_urls(genre_url, page_number, end_page_number):
-    if page > end_page_number:
+def get_books_urls(genre_url, page_number, last_page):
+    if page > last_page:
         raise ValueError(f'Страницы под номером {page_number} не существует')
 
     page_url = f'{genre_url}{page_number}'
@@ -59,7 +60,11 @@ def parse_book_page(book_id, book_folder, image_folder):
     img = soup.select_one('.bookimage a img')['src']
     filename = img.split('/')[-1]
     img_src = os.path.join(image_folder, filename)
+    if skip_img:
+        img_src = 'Not downloaded'
     book_path = os.path.join(book_folder, f'{book_name}.txt')
+    if skip_txt:
+        book_path = 'Not downloaded'
     image_link = urljoin('https://tululu.org', img)
     comments_tags = soup.select('.texts')
     comments = [comment.span.text for comment in comments_tags]
@@ -99,10 +104,14 @@ def create_books_description(description, folder):
 
 
 def get_args():
-    parser = argparse.ArgumentParser(description='Программа для скачивания всех книг и обложек к нем,'
-                                                 'со всех указанных страниц')
+    parser = argparse.ArgumentParser(description='Программа для скачивания всех книг, обложек,'
+                                                 'описания, со всех указанных страниц')
     parser.add_argument('-s', '--start_page', help='С какой страницы скачивать книги', type=int, default=1)
     parser.add_argument('-e', '--end_page', help='До какой страницы скачивать книги', type=int)
+    parser.add_argument('-si', '--skip_img', help='Не скачивать обложки книг', action='store_true')
+    parser.add_argument('-st', '--skip_txt', help='Не скачивать книги', action='store_true')
+    parser.add_argument('-d', '--dest_folder', help='Куда сохранять все файлы', type=str, default='')
+    parser.add_argument('-j', '--json_path', help='Куда сохранять json, отдельно', type=str, default='')
     arguments = parser.parse_args()
     return arguments
 
@@ -113,46 +122,54 @@ if __name__ == '__main__':
                         format='%(filename)s - %(levelname)s - %(message)s',
                         level=logging.ERROR)
     genre_url = 'https://tululu.org/l55/'
-    end_page_number = get_end_page_number(genre_url)
+    last_page = get_last_page_number(genre_url)
     all_books_urls = []
-    books_folder = 'books/'
-    images_folder = 'images/'
-    json_folder = 'json/'
+    dest_folder = args.dest_folder
+    books_folder = os.path.join(dest_folder, 'books/').replace('\\', '/')
+    images_folder = os.path.join(dest_folder, 'images/').replace('\\', '/')
+    json_folder = os.path.join(dest_folder, 'json/').replace('\\', '/')
+    if args.json_path:
+        json_folder = os.path.join(args.json_path, 'json/').replace('\\', '/')
     os.makedirs(books_folder, exist_ok=True)
     os.makedirs(images_folder, exist_ok=True)
     os.makedirs(json_folder, exist_ok=True)
+    skip_img = args.skip_img
+    skip_txt = args.skip_txt
 
     start_page = args.start_page
     if args.end_page:
         end_page = args.end_page
     else:
-        end_page = end_page_number
+        end_page = start_page + 1
 
     for page in range(start_page, end_page):
         try:
-            books_urls = get_books_urls(genre_url, page, end_page_number)
+            books_urls = get_books_urls(genre_url, page, last_page)
             all_books_urls.extend(books_urls)
         except ValueError:
-            print(f'Страницы с номером {page} не существует')
-            logging.error(f'Страницы с номером {page} не существует')
+            print(f'Нет страницы с номером {page}, последняя под номером{last_page}, цикл завершен')
+            logging.error(f'Нет страницы с номером {page}, последняя под номером{last_page}, цикл завершен')
             if all_books_urls:
                 print('Список ссылок на книги не пуст, скачивание продолжится')
-            else:
-                print('Никаких ссылок на книги не найдено, скачивание отменено')
             break
 
+    if not all_books_urls:
+        logging.error('Никаких ссылок на книги не найдено, скачивание отменено')
+        sys.exit('Никаких ссылок на книги не найдено, скачивание отменено')
+
     books_description = []
-    for url in tqdm(all_books_urls, ncols=90):
+    for url in tqdm(all_books_urls, ncols=80):
         book_id = urlsplit(url).path.strip('/').strip('b')
         try:
             book_link = get_book_link(book_id)
             book_page_info, img_link = parse_book_page(book_id, books_folder, images_folder)
-            download_txt(book_link, book_page_info)
-            download_image(img_link, book_page_info)
+            if not skip_txt:
+                download_txt(book_link, book_page_info)
+            if not skip_img:
+                download_image(img_link, book_page_info)
             books_description.append(book_page_info)
         except requests.HTTPError:
-            print(f'Книга по ссылке {url} не доступна для скачивания')
-            logging.error(f'Книга по ссылке {url} не доступна для скачивания')
+            logging.error(f'{url} скачивание недоступно')
             continue
 
     create_books_description(books_description, json_folder)
