@@ -55,9 +55,9 @@ def parse_book_page(book_id, book_folder, image_folder, skip_image, skip_text):
 
     soup = BeautifulSoup(response.text, 'lxml')
     title_tag = soup.select_one('h1')
-    title_and_author = title_tag.text.split('::')
-    book_name = sanitize_filename(title_and_author[0].strip())
-    author = title_and_author[1].strip()
+    title, author = title_tag.text.split('::')
+    book_name = sanitize_filename(title.strip())
+    author = author.strip()
     img = soup.select_one('.bookimage a img')['src']
     filename = img.split('/')[-1]
     img_path = os.path.join(image_folder, filename)
@@ -119,7 +119,7 @@ if __name__ == '__main__':
     args = get_args()
     logging.basicConfig(filename='sample.log', filemode='w',
                         format='%(filename)s - %(levelname)s - %(message)s',
-                        level=logging.ERROR)
+                        level=logging.WARNING)
     genre_url = 'https://tululu.org/l55/'
     last_page = get_last_page_number(genre_url)
     all_books_urls = []
@@ -143,11 +143,11 @@ if __name__ == '__main__':
             books_urls = get_books_urls(genre_url, page, last_page)
             all_books_urls.extend(books_urls)
         except ValueError:
-            logging.error(f'Нет страницы с номером {page}, последняя под номером{last_page}, цикл завершен')
+            logging.warning(f'Нет страницы с номером {page}, последняя под номером{last_page}, цикл завершен')
             break
 
     if not all_books_urls:
-        logging.error('Никаких ссылок на книги не найдено, скачивание отменено')
+        logging.warning('Никаких ссылок на книги не найдено, скачивание отменено')
         sys.exit('Никаких ссылок на книги не найдено, скачивание отменено')
 
     books_description = []
@@ -163,7 +163,7 @@ if __name__ == '__main__':
                 download_image(img_link, image_path)
             books_description.append(book_page_info)
         except requests.HTTPError:
-            logging.error(f'Книга по ссылке {url} не доступна для скачивания')
+            logging.warning(f'Книга по ссылке {url} не доступна для скачивания')
             continue
 
     create_books_description(books_description, json_folder)
