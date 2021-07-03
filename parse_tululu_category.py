@@ -38,6 +38,7 @@ def get_book_link(book_id):
     base_url = f'https://tululu.org/txt.php'
     payload = {'id': book_id}
     response = requests.get(base_url, params=payload)
+    response.raise_for_status()
     check_for_redirect(response)
     return response.url
 
