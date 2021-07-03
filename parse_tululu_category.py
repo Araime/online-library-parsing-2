@@ -142,7 +142,6 @@ if __name__ == '__main__':
             books_urls = get_books_urls(genre_url, page, last_page)
             all_books_urls.extend(books_urls)
         except ValueError:
-            print(f'Нет страницы с номером {page}, последняя под номером{last_page}, цикл завершен')
             logging.error(f'Нет страницы с номером {page}, последняя под номером{last_page}, цикл завершен')
             if all_books_urls:
                 print('Список ссылок на книги не пуст, скачивание продолжится')
