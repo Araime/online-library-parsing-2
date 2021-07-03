@@ -1,4 +1,5 @@
 import argparse
+import datetime
 import json
 import logging
 import os
@@ -55,15 +56,17 @@ def parse_book_page(book_id, book_folder, image_folder, skip_image, skip_text):
 
     soup = BeautifulSoup(response.text, 'lxml')
     title_tag = soup.select_one('h1')
-    title, author = title_tag.text.split('::')
+    title, author_name = title_tag.text.split('::')
     book_name = sanitize_filename(title.strip())
-    author = author.strip()
+    author = author_name.strip()
     img = soup.select_one('.bookimage a img')['src']
     filename = img.split('/')[-1]
-    img_path = os.path.join(image_folder, filename)
+    now = datetime.datetime.now()
+    timestamp = str(now.strftime("%Y-%m-%d_%H-%M-%S"))
+    img_path = os.path.join(image_folder, f'{timestamp} - {filename}')
     if skip_image:
         img_path = 'Not downloaded'
-    book_path = os.path.join(book_folder, f'{book_name}.txt')
+    book_path = os.path.join(book_folder, f'{timestamp} - {book_name}.txt')
     if skip_text:
         book_path = 'Not downloaded'
     image_link = urljoin('https://tululu.org', img)
