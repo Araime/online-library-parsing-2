@@ -121,6 +121,7 @@ if __name__ == '__main__':
                         level=logging.ERROR)
     genre_url = 'https://tululu.org/l55/'
     last_page = get_last_page_number(genre_url)
+    print(last_page)
     all_books_urls = []
     dest_folder = args.dest_folder
     books_folder = os.path.join(dest_folder, 'books/')
@@ -135,7 +136,7 @@ if __name__ == '__main__':
     if args.end_page:
         end_page = args.end_page
     else:
-        end_page = args.start_page + 1
+        end_page = last_page
 
     for page in range(args.start_page, end_page):
         try:
