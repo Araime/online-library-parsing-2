@@ -55,9 +55,9 @@ def parse_book_page(book_id, book_folder, image_folder, skip_image, skip_text):
 
     soup = BeautifulSoup(response.text, 'lxml')
     title_tag = soup.select_one('h1')
-    title = title_tag.text.split('::')
-    book_name = sanitize_filename(title[0].strip())
-    author = title[1].strip()
+    title_and_author = title_tag.text.split('::')
+    book_name = sanitize_filename(title_and_author[0].strip())
+    author = title_and_author[1].strip()
     img = soup.select_one('.bookimage a img')['src']
     filename = img.split('/')[-1]
     img_path = os.path.join(image_folder, filename)
