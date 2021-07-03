@@ -143,8 +143,6 @@ if __name__ == '__main__':
             all_books_urls.extend(books_urls)
         except ValueError:
             logging.error(f'Нет страницы с номером {page}, последняя под номером{last_page}, цикл завершен')
-            if all_books_urls:
-                print('Список ссылок на книги не пуст, скачивание продолжится')
             break
 
     if not all_books_urls:
