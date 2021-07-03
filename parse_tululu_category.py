@@ -123,24 +123,21 @@ if __name__ == '__main__':
     last_page = get_last_page_number(genre_url)
     all_books_urls = []
     dest_folder = args.dest_folder
-    books_folder = os.path.join(dest_folder, 'books/').replace('\\', '/')
-    images_folder = os.path.join(dest_folder, 'images/').replace('\\', '/')
-    json_folder = os.path.join(dest_folder, 'json/').replace('\\', '/')
+    books_folder = os.path.join(dest_folder, 'books/')
+    images_folder = os.path.join(dest_folder, 'images/')
+    json_folder = os.path.join(dest_folder, 'json/')
     if args.json_path:
-        json_folder = os.path.join(args.json_path, 'json/').replace('\\', '/')
+        json_folder = os.path.join(args.json_path, 'json/')
     os.makedirs(books_folder, exist_ok=True)
     os.makedirs(images_folder, exist_ok=True)
     os.makedirs(json_folder, exist_ok=True)
 
-    skip_img = args.skip_img
-    skip_txt = args.skip_txt
-    start_page = args.start_page
     if args.end_page:
         end_page = args.end_page
     else:
-        end_page = start_page + 1
+        end_page = args.start_page + 1
 
-    for page in range(start_page, end_page):
+    for page in range(args.start_page, end_page):
         try:
             books_urls = get_books_urls(genre_url, page, last_page)
             all_books_urls.extend(books_urls)
@@ -162,10 +159,10 @@ if __name__ == '__main__':
         try:
             book_link = get_book_link(book_id)
             book_page_info, img_link, image_path, txt_path = parse_book_page(book_id, books_folder, images_folder,
-                                                                             skip_img, skip_txt)
-            if not skip_txt:
+                                                                             args.skip_img, args.skip_txt)
+            if not args.skip_txt:
                 download_txt(book_link, txt_path)
-            if not skip_img:
+            if not args.skip_img:
                 download_image(img_link, image_path)
             books_description.append(book_page_info)
         except requests.HTTPError:
