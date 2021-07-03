@@ -20,7 +20,7 @@ def get_last_page_number(genre_url):
 
 
 def get_books_urls(genre_url, page_number, last_page):
-    if page > last_page:
+    if page_number > last_page:
         raise ValueError(f'Страницы под номером {page_number} не существует')
 
     page_url = f'{genre_url}{page_number}'
@@ -121,7 +121,6 @@ if __name__ == '__main__':
                         level=logging.ERROR)
     genre_url = 'https://tululu.org/l55/'
     last_page = get_last_page_number(genre_url)
-    print(last_page)
     all_books_urls = []
     dest_folder = args.dest_folder
     books_folder = os.path.join(dest_folder, 'books/')
