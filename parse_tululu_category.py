@@ -149,7 +149,6 @@ if __name__ == '__main__':
         logging.error('Никаких ссылок на книги не найдено, скачивание отменено')
         sys.exit('Никаких ссылок на книги не найдено, скачивание отменено')
 
-    unavailability_flag = False
     books_description = []
     for url in tqdm(all_books_urls, ncols=80):
         book_id = urlsplit(url).path.strip('/').strip('b')
@@ -164,10 +163,6 @@ if __name__ == '__main__':
             books_description.append(book_page_info)
         except requests.HTTPError:
             logging.error(f'Книга по ссылке {url} не доступна для скачивания')
-            unavailability_flag = True
             continue
-
-    if unavailability_flag:
-        print(f'Не все книги скачались, подробности в sample.log')
 
     create_books_description(books_description, json_folder)
