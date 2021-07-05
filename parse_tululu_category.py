@@ -12,14 +12,6 @@ import requests
 from tqdm import tqdm
 
 
-def get_last_page_number(genre_url):
-    response = requests.get(genre_url)
-    response.raise_for_status()
-    soup = BeautifulSoup(response.text, 'lxml')
-    last_page_number = int(soup.select('.npage')[-1].text)
-    return last_page_number
-
-
 def get_books_urls(genre_url, page_number):
     page_url = f'{genre_url}{page_number}'
     response = requests.get(page_url)
@@ -106,7 +98,7 @@ def get_args():
     parser = argparse.ArgumentParser(description='Программа для скачивания всех книг, обложек,'
                                                  'описания, со всех указанных страниц')
     parser.add_argument('-s', '--start_page', help='С какой страницы скачивать книги', type=int, default=1)
-    parser.add_argument('-e', '--end_page', help='До какой страницы скачивать книги', type=int)
+    parser.add_argument('-e', '--end_page', help='До какой страницы скачивать книги', type=int, default=701)
     parser.add_argument('-si', '--skip_img', help='Не скачивать обложки книг', action='store_true')
     parser.add_argument('-st', '--skip_txt', help='Не скачивать книги', action='store_true')
     parser.add_argument('-d', '--dest_folder', help='Куда сохранять все файлы', type=str, default='')
@@ -121,7 +113,7 @@ if __name__ == '__main__':
                         format='%(filename)s - %(levelname)s - %(message)s',
                         level=logging.WARNING)
     genre_url = 'https://tululu.org/l55/'
-    last_page = get_last_page_number(genre_url)
+    last_page = 701
     all_books_urls = []
     dest_folder = args.dest_folder
     books_folder = os.path.join(dest_folder, 'books/')
@@ -133,13 +125,10 @@ if __name__ == '__main__':
     os.makedirs(images_folder, exist_ok=True)
     os.makedirs(json_folder, exist_ok=True)
 
-    end_page = last_page
-    if args.end_page:
-        end_page = args.end_page
     if args.end_page > last_page:
         args.end_page = last_page
 
-    for page in range(args.start_page, end_page):
+    for page in range(args.start_page, args.end_page):
         books_urls = get_books_urls(genre_url, page)
         all_books_urls.extend(books_urls)
 
