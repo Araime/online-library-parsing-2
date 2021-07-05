@@ -20,10 +20,7 @@ def get_last_page_number(genre_url):
     return last_page_number
 
 
-def get_books_urls(genre_url, page_number, last_page):
-    if page_number > last_page:
-        raise ValueError(f'Страницы под номером {page_number} не существует')
-
+def get_books_urls(genre_url, page_number):
     page_url = f'{genre_url}{page_number}'
     response = requests.get(page_url)
     response.raise_for_status()
@@ -109,7 +106,7 @@ def get_args():
     parser = argparse.ArgumentParser(description='Программа для скачивания всех книг, обложек,'
                                                  'описания, со всех указанных страниц')
     parser.add_argument('-s', '--start_page', help='С какой страницы скачивать книги', type=int, default=1)
-    parser.add_argument('-e', '--end_page', help='До какой страницы скачивать книги', type=int)
+    parser.add_argument('-e', '--end_page', help='До какой страницы скачивать книги', type=int, default=2)
     parser.add_argument('-si', '--skip_img', help='Не скачивать обложки книг', action='store_true')
     parser.add_argument('-st', '--skip_txt', help='Не скачивать книги', action='store_true')
     parser.add_argument('-d', '--dest_folder', help='Куда сохранять все файлы', type=str, default='')
@@ -136,18 +133,13 @@ if __name__ == '__main__':
     os.makedirs(images_folder, exist_ok=True)
     os.makedirs(json_folder, exist_ok=True)
 
-    if args.end_page:
-        end_page = args.end_page
-    else:
-        end_page = last_page
+    end_page = args.end_page
+    if args.end_page > last_page:
+        args.end_page = last_page
 
     for page in range(args.start_page, end_page):
-        try:
-            books_urls = get_books_urls(genre_url, page, last_page)
-            all_books_urls.extend(books_urls)
-        except ValueError:
-            logging.warning(f'Нет страницы с номером {page}, последняя под номером{last_page}, цикл завершен')
-            break
+        books_urls = get_books_urls(genre_url, page)
+        all_books_urls.extend(books_urls)
 
     if not all_books_urls:
         logging.warning('Никаких ссылок на книги не найдено, скачивание отменено')
