@@ -106,7 +106,7 @@ def get_args():
     parser = argparse.ArgumentParser(description='Программа для скачивания всех книг, обложек,'
                                                  'описания, со всех указанных страниц')
     parser.add_argument('-s', '--start_page', help='С какой страницы скачивать книги', type=int, default=1)
-    parser.add_argument('-e', '--end_page', help='До какой страницы скачивать книги', type=int, default=2)
+    parser.add_argument('-e', '--end_page', help='До какой страницы скачивать книги', type=int)
     parser.add_argument('-si', '--skip_img', help='Не скачивать обложки книг', action='store_true')
     parser.add_argument('-st', '--skip_txt', help='Не скачивать книги', action='store_true')
     parser.add_argument('-d', '--dest_folder', help='Куда сохранять все файлы', type=str, default='')
@@ -133,7 +133,9 @@ if __name__ == '__main__':
     os.makedirs(images_folder, exist_ok=True)
     os.makedirs(json_folder, exist_ok=True)
 
-    end_page = args.end_page
+    end_page = last_page
+    if args.end_page:
+        end_page = args.end_page
     if args.end_page > last_page:
         args.end_page = last_page
 
