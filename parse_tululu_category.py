@@ -102,12 +102,11 @@ def create_books_description(description, folder):
         json.dump(description, file, ensure_ascii=False)
 
 
-def get_args():
+def get_args(last_page):
     parser = argparse.ArgumentParser(description='Программа для скачивания всех книг, обложек,'
                                                  'описания, со всех указанных страниц')
     parser.add_argument('-s', '--start_page', help='С какой страницы скачивать книги', type=int, default=1)
-    parser.add_argument('-e', '--end_page', help='До какой страницы скачивать книги', type=int,
-                        default=get_last_page_number(genre_url))
+    parser.add_argument('-e', '--end_page', help='До какой страницы скачивать книги', type=int, default=last_page)
     parser.add_argument('-si', '--skip_img', help='Не скачивать обложки книг', action='store_true')
     parser.add_argument('-st', '--skip_txt', help='Не скачивать книги', action='store_true')
     parser.add_argument('-d', '--dest_folder', help='Куда сохранять все файлы', type=str, default='')
@@ -119,7 +118,7 @@ def get_args():
 if __name__ == '__main__':
     genre_url = 'https://tululu.org/l55/'
     last_page = get_last_page_number(genre_url)
-    args = get_args()
+    args = get_args(last_page)
     logging.basicConfig(filename='sample.log', filemode='w',
                         format='%(filename)s - %(levelname)s - %(message)s',
                         level=logging.WARNING)
