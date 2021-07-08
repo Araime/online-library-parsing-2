@@ -107,9 +107,6 @@ python parse_tululu_category.py -j "G:\For json"
 python parse_tululu_category.py -s 2 -e 5 -si -st -d "G:\Data" -j "G:\For json"
 ```
 
-C:\Users\varfolomeyfever\Desktop\For json
-
-
 Прогресс бар отображает скачивание книг:  
 
 <a href="https://ibb.co/jR4pbS5"><img src="https://i.ibb.co/WtKTGL3/2.png" alt="2" border="0"></a>
