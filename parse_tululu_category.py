@@ -46,6 +46,14 @@ def check_for_redirect(response):
         raise requests.HTTPError(response.history)
 
 
+def get_image_path(filename, image_folder, timestamp):
+    if filename == 'nopic.gif':
+        img_path = os.path.join(image_folder, filename)
+    else:
+        img_path = os.path.join(image_folder, f'{timestamp} - {filename}')
+    return img_path
+
+
 def parse_book_page(book_id, book_folder, image_folder, skip_image, skip_text):
     book_page_link = f'https://tululu.org/b{book_id}'
     response = requests.get(book_page_link)
@@ -60,7 +68,7 @@ def parse_book_page(book_id, book_folder, image_folder, skip_image, skip_text):
     filename = img.split('/')[-1]
     now = datetime.datetime.now()
     timestamp = str(now.strftime("%Y-%m-%d_%H-%M-%S"))
-    img_path = os.path.join(image_folder, f'{timestamp} - {filename}')
+    img_path = get_image_path(filename, image_folder, timestamp)
     if skip_image:
         img_path = 'Not downloaded'
     book_path = os.path.join(book_folder, f'{timestamp} - {book_name}.txt')
